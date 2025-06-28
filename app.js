@@ -340,20 +340,33 @@ class MathTestCreator {
             
             // タイトル
             doc.setFontSize(18);
-            doc.setFont(undefined, 'bold');
-            doc.text('数学テスト', pageWidth / 2, yPosition, { align: 'center' });
+            doc.setFont('helvetica', 'bold');
+            doc.text('Math Test / Suugaku Test', pageWidth / 2, yPosition, { align: 'center' });
             yPosition += 20;
             
-            // テスト情報
+            // テスト情報 (アルファベットで表示)
             doc.setFontSize(12);
-            doc.setFont(undefined, 'normal');
-            doc.text(`対象: ${this.generatedTest.gradeName}`, margin, yPosition);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Grade: ${this.generatedTest.gradeName}`, margin, yPosition);
             yPosition += 10;
-            doc.text(`分野: ${this.generatedTest.selectedFields.join(', ')}`, margin, yPosition);
+            doc.text(`Fields: ${this.generatedTest.selectedFields.join(', ')}`, margin, yPosition);
             yPosition += 10;
-            doc.text(`難易度: レベル ${this.generatedTest.difficulty}`, margin, yPosition);
+            doc.text(`Difficulty: Level ${this.generatedTest.difficulty}`, margin, yPosition);
             yPosition += 10;
-            doc.text(`制限時間: ${this.generatedTest.targetTime}分`, margin, yPosition);
+            doc.text(`Time Limit: ${this.generatedTest.targetTime} minutes`, margin, yPosition);
+            yPosition += 10;
+            doc.text(`Problems: ${this.generatedTest.totalProblems}`, margin, yPosition);
+            yPosition += 20;
+            
+            // 注意事項
+            doc.setFontSize(10);
+            doc.text('Instructions:', margin, yPosition);
+            yPosition += 8;
+            doc.text('- Show your work clearly', margin + 5, yPosition);
+            yPosition += 6;
+            doc.text('- Write answers in the designated spaces', margin + 5, yPosition);
+            yPosition += 6;
+            doc.text('- Draw diagrams accurately', margin + 5, yPosition);
             yPosition += 20;
             
             // 問題
@@ -363,17 +376,21 @@ class MathTestCreator {
                     yPosition = 30;
                 }
                 
-                doc.setFont(undefined, 'bold');
-                doc.text(`問${index + 1} [${problem.field}]`, margin, yPosition);
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'bold');
+                const header = `Problem ${index + 1} [${problem.field}]${problem.source ? ' - ' + problem.source : ''}`;
+                doc.text(header, margin, yPosition);
                 yPosition += 15;
                 
-                doc.setFont(undefined, 'normal');
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(11);
                 const questionLines = doc.splitTextToSize(problem.question, pageWidth - 2 * margin);
                 doc.text(questionLines, margin, yPosition);
                 yPosition += questionLines.length * 7 + 20;
                 
                 // 解答欄
-                doc.text('【解答】', margin, yPosition);
+                doc.setFont('helvetica', 'bold');
+                doc.text('Answer:', margin, yPosition);
                 yPosition += 10;
                 
                 for (let i = 0; i < 3; i++) {
@@ -383,7 +400,8 @@ class MathTestCreator {
                 yPosition += 10;
             });
             
-            doc.save(`数学テスト_${this.generatedTest.gradeName}_${new Date().toLocaleDateString()}.pdf`);
+            const fileName = `Math_Test_Grade${this.selectedGrade}_${new Date().toISOString().slice(0,10)}.pdf`;
+            doc.save(fileName);
             
         } catch (error) {
             console.error('PDF generation error:', error);
@@ -409,8 +427,8 @@ class MathTestCreator {
             
             // タイトル
             doc.setFontSize(18);
-            doc.setFont(undefined, 'bold');
-            doc.text('数学テスト - 解答と解説', pageWidth / 2, yPosition, { align: 'center' });
+            doc.setFont('helvetica', 'bold');
+            doc.text('Math Test - Answers & Solutions', pageWidth / 2, yPosition, { align: 'center' });
             yPosition += 30;
             
             // 問題と解答
@@ -420,28 +438,31 @@ class MathTestCreator {
                     yPosition = 30;
                 }
                 
-                doc.setFont(undefined, 'bold');
-                doc.text(`問${index + 1} [${problem.field}]`, margin, yPosition);
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'bold');
+                const header = `Problem ${index + 1} [${problem.field}]${problem.source ? ' - ' + problem.source : ''}`;
+                doc.text(header, margin, yPosition);
                 yPosition += 15;
                 
-                doc.setFont(undefined, 'normal');
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(11);
                 const questionLines = doc.splitTextToSize(problem.question, pageWidth - 2 * margin);
                 doc.text(questionLines, margin, yPosition);
                 yPosition += questionLines.length * 7 + 15;
                 
                 // 解答
-                doc.setFont(undefined, 'bold');
-                doc.text('【解答】', margin, yPosition);
-                doc.setFont(undefined, 'normal');
+                doc.setFont('helvetica', 'bold');
+                doc.text('Answer:', margin, yPosition);
+                doc.setFont('helvetica', 'normal');
                 yPosition += 10;
                 doc.text(String(problem.answer), margin + 10, yPosition);
                 yPosition += 15;
                 
                 // 解説
                 if (problem.solution) {
-                    doc.setFont(undefined, 'bold');
-                    doc.text('【解説】', margin, yPosition);
-                    doc.setFont(undefined, 'normal');
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('Solution:', margin, yPosition);
+                    doc.setFont('helvetica', 'normal');
                     yPosition += 10;
                     const solutionLines = doc.splitTextToSize(problem.solution, pageWidth - 2 * margin);
                     doc.text(solutionLines, margin + 10, yPosition);
@@ -451,7 +472,8 @@ class MathTestCreator {
                 yPosition += 20;
             });
             
-            doc.save(`数学テスト解答_${this.generatedTest.gradeName}_${new Date().toLocaleDateString()}.pdf`);
+            const fileName = `Math_Test_Answers_Grade${this.selectedGrade}_${new Date().toISOString().slice(0,10)}.pdf`;
+            doc.save(fileName);
             
         } catch (error) {
             console.error('Answer PDF generation error:', error);

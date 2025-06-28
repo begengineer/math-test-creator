@@ -53,11 +53,20 @@ class ProblemGenerator {
         const problems = [];
         const timePerProblem = fieldData.difficulty[difficulty].timePerProblem;
         const maxProblems = Math.floor(targetTime / timePerProblem);
-        const problemsToGenerate = Math.min(maxProblems, 3); // 分野あたり最大3問
+        // 50分テストで30問程度になるよう調整
+        const totalFields = Object.keys(fieldData).length || 1;
+        const problemsPerField = Math.max(Math.floor(30 / totalFields), 5);
+        const problemsToGenerate = Math.min(maxProblems, problemsPerField);
 
+        // 難易度に関係なく基本問題から始める
         for (let i = 0; i < problemsToGenerate; i++) {
-            const problem = this.generateProblem(grade, fieldName, fieldData, difficulty);
+            // 最初は難易度1から、後半で指定難易度を使用
+            const currentDifficulty = i < Math.floor(problemsToGenerate / 2) ? 1 : difficulty;
+            const problem = this.generateProblem(grade, fieldName, fieldData, currentDifficulty);
             if (problem) {
+                problem.difficulty = currentDifficulty;
+                problem.estimatedTime = timePerProblem;
+                problem.field = fieldName;
                 problems.push(problem);
             }
         }
@@ -65,8 +74,75 @@ class ProblemGenerator {
         return problems;
     }
 
-    // 個別問題生成
+    // 個別問題生成（80%過去問 + 20%オリジナル）
     generateProblem(grade, fieldName, fieldData, difficulty) {
+        // 80%の確率で過去問、20%の確率でオリジナル問題
+        const useExamProblem = Math.random() < 0.8;
+        
+        let problem;
+        
+        if (useExamProblem) {
+            problem = this.generateExamProblem(grade, fieldName, difficulty);
+        } else {
+            problem = this.generateOriginalProblem(grade, fieldName, difficulty);
+        }
+        
+        // フォールバック: 過去問が見つからない場合は従来の生成方式
+        if (!problem) {
+            problem = this.generateTraditionalProblem(grade, fieldName, difficulty);
+        }
+
+        if (problem) {
+            problem.field = fieldName;
+            problem.difficulty = difficulty;
+            problem.estimatedTime = fieldData.difficulty[difficulty].timePerProblem;
+
+        return problem;
+    }
+    
+    // 高校入試過去問から選択
+    generateExamProblem(grade, fieldName, difficulty) {
+        const gradeKey = `grade${grade}`;
+        const gradeProblems = examProblems[gradeKey];
+        
+        if (!gradeProblems || !gradeProblems[fieldName]) {
+            return null;
+        }
+        
+        const fieldProblems = gradeProblems[fieldName];
+        // 難易度に応じて問題をフィルタリング
+        const suitableProblems = fieldProblems.filter(p => 
+            Math.abs(p.difficulty - difficulty) <= 1
+        );
+        
+        if (suitableProblems.length === 0) {
+            // 難易度が合わない場合は全ての問題から選択
+            return fieldProblems[Math.floor(Math.random() * fieldProblems.length)];
+        }
+        
+        return suitableProblems[Math.floor(Math.random() * suitableProblems.length)];
+    }
+    
+    // オリジナル問題生成
+    generateOriginalProblem(grade, fieldName, difficulty) {
+        const gradeKey = `grade${grade}`;
+        const gradeProblems = originalProblems[gradeKey];
+        
+        if (!gradeProblems || !gradeProblems[fieldName]) {
+            return null;
+        }
+        
+        const generators = gradeProblems[fieldName];
+        if (generators.length === 0) {
+            return null;
+        }
+        
+        const generator = generators[Math.floor(Math.random() * generators.length)];
+        return generator();
+    }
+    
+    // 従来の問題生成（フォールバック用）
+    generateTraditionalProblem(grade, fieldName, difficulty) {
         const generators = {
             // 中学1年生
             "正負の数": () => this.generatePositiveNegativeProblems(difficulty),
@@ -98,15 +174,16 @@ class ProblemGenerator {
 
         const generator = generators[fieldName];
         if (!generator) {
-            return null;
+            console.warn(`No generator found for field: ${fieldName}`);
+            return {
+                question: `${fieldName}の問題`,
+                answer: "解答",
+                solution: "解法",
+                source: "システム生成"
+            };
         }
 
-        const problem = generator();
-        problem.field = fieldName;
-        problem.difficulty = difficulty;
-        problem.estimatedTime = fieldData.difficulty[difficulty].timePerProblem;
-
-        return problem;
+        return generator();
     }
 
     // 正負の数の問題生成
@@ -402,13 +479,53 @@ class ProblemGenerator {
     }
 
     generateProportionProblems(difficulty) {
-        // 比例・反比例の問題生成
-        return { question: "比例・反比例の問題", answer: "解", solution: "解法" };
+        const problems = {
+            1: () => {
+                const k = this.randomInt(2, 8);
+                const x = this.randomInt(2, 10);
+                return {
+                    question: `yがxに比例し、x = ${x}のときy = ${k * x}である。\n(1) yをxの式で表しなさい。\n(2) x = 5のときのyの値を求めなさい。`,
+                    answer: `(1) y = ${k}x\n(2) y = ${k * 5}`,
+                    solution: `比例定数k = ${k * x} ÷ ${x} = ${k}\n(1) y = ${k}x\n(2) y = ${k} × 5 = ${k * 5}`
+                };
+            },
+            2: () => {
+                const k = this.randomInt(3, 12);
+                const x1 = this.randomInt(2, 6);
+                const x2 = this.randomInt(7, 12);
+                return {
+                    question: `yがxに反比例し、x = ${x1}のときy = ${Math.floor(k * 12 / x1)}である。\nx = ${x2}のときのyの値を求めなさい。`,
+                    answer: `y = ${Math.floor(k * 12 / x2)}`,
+                    solution: `比例定数k = ${x1} × ${Math.floor(k * 12 / x1)} = ${k * 12}\ny = ${k * 12}/x\nx = ${x2}のとき、y = ${k * 12} ÷ ${x2} = ${Math.floor(k * 12 / x2)}`
+                };
+            }
+        };
+        const difficultyLevel = Math.min(difficulty, 2);
+        return problems[difficultyLevel]();
     }
 
     generatePlaneGeometryProblems(difficulty) {
-        // 平面図形の問題生成
-        return { question: "平面図形の問題", answer: "解", solution: "解法" };
+        const problems = {
+            1: () => {
+                const angle1 = this.randomInt(30, 80);
+                const angle2 = 180 - angle1 - this.randomInt(20, 60);
+                return {
+                    question: `三角形ABCで、∠A = ${angle1}°、∠B = ${angle2}°のとき、∠Cの大きさを求めなさい。`,
+                    answer: `${180 - angle1 - angle2}°`,
+                    solution: `三角形の内角の和は180°\n∠C = 180° - ${angle1}° - ${angle2}° = ${180 - angle1 - angle2}°`
+                };
+            },
+            2: () => {
+                const side = this.randomInt(4, 12);
+                return {
+                    question: `1辺が${side}cmの正方形の周囲の長さと面積を求めなさい。`,
+                    answer: `周囲: ${side * 4}cm、面積: ${side * side}cm²`,
+                    solution: `周囲の長さ = ${side} × 4 = ${side * 4}cm\n面積 = ${side} × ${side} = ${side * side}cm²`
+                };
+            }
+        };
+        const difficultyLevel = Math.min(difficulty, 2);
+        return problems[difficultyLevel]();
     }
 
     generateSolidGeometryProblems(difficulty) {
@@ -417,8 +534,30 @@ class ProblemGenerator {
     }
 
     generateDataAnalysisProblems(difficulty) {
-        // データ分析の問題生成
-        return { question: "データ分析の問題", answer: "解", solution: "解法" };
+        const problems = {
+            1: () => {
+                const scores = [75, 80, 65, 90, 85, 70, 95, 60, 85, 80];
+                const sum = scores.reduce((a, b) => a + b, 0);
+                const average = sum / scores.length;
+                return {
+                    question: `次のテストの点数について平均点を求めなさい。\n${scores.join('点、')}点`,
+                    answer: `${average}点`,
+                    solution: `合計 = ${scores.join(' + ')} = ${sum}点\n平均 = ${sum} ÷ ${scores.length} = ${average}点`
+                };
+            },
+            2: () => {
+                const data = [8, 12, 15, 8, 20, 12, 8, 25];
+                const sortedData = [...data].sort((a, b) => a - b);
+                const mode = data.filter(x => data.indexOf(x) !== data.lastIndexOf(x))[0];
+                return {
+                    question: `次のデータの最頻値（モード）を求めなさい。\n${data.join(', ')}`,
+                    answer: `${mode}`,
+                    solution: `データを整理すると: ${sortedData.join(', ')}\n最も多く現れる値は ${mode}`
+                };
+            }
+        };
+        const difficultyLevel = Math.min(difficulty, 2);
+        return problems[difficultyLevel]();
     }
 
     // ユーティリティメソッド

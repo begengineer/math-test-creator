@@ -33,7 +33,17 @@ class PDFGenerator {
     // クライアントサイドPDF生成（jsPDF使用）
     generateClientSidePDF(testData) {
         const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
+        // Unicode対応でPDFを作成
+        const doc = new jsPDF({
+            unit: 'mm',
+            format: 'a4',
+            charset: 'utf-8'
+        });
+        
+        // 日本語フォント設定
+        doc.addFileToVFS('NotoSansCJK.ttf', 'base64,data');
+        doc.addFont('NotoSansCJK.ttf', 'NotoSansCJK', 'normal');
+        doc.setFont('NotoSansCJK', 'normal');
         
         let yPosition = 30;
         const pageHeight = doc.internal.pageSize.height;
@@ -41,27 +51,28 @@ class PDFGenerator {
         
         // タイトル
         doc.setFontSize(this.fontSize.title);
-        doc.setFont(undefined, 'bold');
-        doc.text('数学テスト', pageWidth / 2, yPosition, { align: 'center' });
+        doc.setFont('helvetica', 'bold');
+        const title = this.encodeText('数学テスト');
+        doc.text(title, pageWidth / 2, yPosition, { align: 'center' });
         yPosition += 15;
         
         // テスト情報
         doc.setFontSize(this.fontSize.subtitle);
-        doc.setFont(undefined, 'normal');
-        doc.text(`対象: ${testData.gradeName}`, this.pageMargin, yPosition);
-        yPosition += 10;
+        doc.setFont('helvetica', 'normal');
         
-        doc.text(`分野: ${testData.selectedFields.join(', ')}`, this.pageMargin, yPosition);
-        yPosition += 10;
+        const testInfo = [
+            `Target: ${testData.gradeName}`,
+            `Fields: ${testData.selectedFields.join(', ')}`,
+            `Difficulty: ${testData.difficulty}/5`,
+            `Time: ${testData.targetTime} min`,
+            `Problems: ${testData.totalProblems}`
+        ];
         
-        doc.text(`難易度: ${testData.difficulty}/5`, this.pageMargin, yPosition);
+        testInfo.forEach(info => {
+            doc.text(info, this.pageMargin, yPosition);
+            yPosition += 10;
+        });
         yPosition += 10;
-        
-        doc.text(`制限時間: ${testData.targetTime}分`, this.pageMargin, yPosition);
-        yPosition += 10;
-        
-        doc.text(`問題数: ${testData.totalProblems}問`, this.pageMargin, yPosition);
-        yPosition += 20;
         
         // 注意事項
         doc.setFontSize(this.fontSize.small);
