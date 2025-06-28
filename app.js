@@ -110,40 +110,38 @@ class MathTestCreator {
     }
 
     selectGrade(grade) {
-        this.selectedGrade = parseInt(grade);
-        
-        // UI更新
-        document.querySelectorAll('.grade-btn').forEach(btn => {
-            btn.classList.remove('selected');
-        });
-        document.querySelector(`[data-grade="${grade}"]`).classList.add('selected');
-
-        // 分野データを読み込んで表示
-        this.loadFieldsForGrade(grade);
-        
-        setTimeout(() => {
-            this.showStep(2);
-        }, 300);
-    }
-
-    async loadFieldsForGrade(grade) {
+        console.log('selectGrade called with grade:', grade);
         try {
-            const response = await fetch(`/api/curriculum/grade${grade}`, {
-                credentials: 'include'
-            });
+            this.selectedGrade = parseInt(grade);
+            console.log('Selected grade set to:', this.selectedGrade);
             
-            if (response.ok) {
-                const gradeData = await response.json();
-                this.renderFields(gradeData.fields);
-            }
+            // UI更新
+            document.querySelectorAll('.grade-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            document.querySelector(`[data-grade="${grade}"]`).classList.add('selected');
+            console.log('UI updated for grade:', grade);
+
+            // 分野データを読み込んで表示
+            this.loadFieldsForGrade(grade);
+            
+            setTimeout(() => {
+                console.log('Moving to step 2');
+                this.showStep(2);
+            }, 300);
         } catch (error) {
-            console.error('Failed to load curriculum data:', error);
-            // フォールバック: クライアントサイドデータ
-            this.renderFieldsFromClientData(grade);
+            console.error('Error in selectGrade:', error);
         }
     }
 
+    async loadFieldsForGrade(grade) {
+        // 直接クライアントサイドデータを使用（確実に動作）
+        console.log('Loading fields for grade:', grade);
+        this.renderFieldsFromClientData(grade);
+    }
+
     renderFieldsFromClientData(grade) {
+        console.log('renderFieldsFromClientData called for grade:', grade);
         // クライアントサイド用のフォールバックデータ
         const clientData = {
             1: {
@@ -175,7 +173,9 @@ class MathTestCreator {
             }
         };
 
-        this.renderFields(clientData[grade] || {});
+        const gradeData = clientData[grade] || {};
+        console.log('Grade data for grade', grade, ':', gradeData);
+        this.renderFields(gradeData);
     }
 
     renderFields(fields) {
@@ -201,6 +201,7 @@ class MathTestCreator {
 
             fieldGrid.appendChild(fieldItem);
         });
+        console.log('Fields rendered successfully, count:', Object.keys(fields).length);
     }
 
     toggleField(fieldName, element) {
