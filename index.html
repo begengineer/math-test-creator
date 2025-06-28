@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数学テスト作成システム</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>📚 中学生数学テスト作成システム</h1>
+            <p>日本の学習指導要領に基づく数学テスト自動生成</p>
+            <button id="logoutBtn" class="logout-btn">ログアウト</button>
+        </header>
+
+        <div class="main-content">
+            <!-- ステップ1: 学年選択 -->
+            <section class="step-section" id="gradeSelection">
+                <div class="step-header">
+                    <span class="step-number">1</span>
+                    <h2>学年を選択してください</h2>
+                </div>
+                <div class="grade-buttons">
+                    <button class="grade-btn" data-grade="1">
+                        <span class="grade-icon">📖</span>
+                        <span class="grade-text">中学1年生</span>
+                        <span class="grade-desc">正負の数、文字と式、方程式など</span>
+                    </button>
+                    <button class="grade-btn" data-grade="2">
+                        <span class="grade-icon">📐</span>
+                        <span class="grade-text">中学2年生</span>
+                        <span class="grade-desc">連立方程式、一次関数、図形証明など</span>
+                    </button>
+                    <button class="grade-btn" data-grade="3">
+                        <span class="grade-icon">📊</span>
+                        <span class="grade-text">中学3年生</span>
+                        <span class="grade-desc">二次方程式、相似、三平方の定理など</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- ステップ2: 分野選択 -->
+            <section class="step-section" id="fieldSelection" style="display: none;">
+                <div class="step-header">
+                    <span class="step-number">2</span>
+                    <h2>テストに含める分野を選択してください</h2>
+                    <p class="step-desc">複数選択可能です</p>
+                </div>
+                <div class="field-grid" id="fieldGrid">
+                    <!-- 動的に生成される -->
+                </div>
+                <div class="step-actions">
+                    <button id="backToGrade" class="btn btn-secondary">戻る</button>
+                    <button id="proceedToDifficulty" class="btn btn-primary" disabled>次へ</button>
+                </div>
+            </section>
+
+            <!-- ステップ3: 難易度・時間設定 -->
+            <section class="step-section" id="settingsSelection" style="display: none;">
+                <div class="step-header">
+                    <span class="step-number">3</span>
+                    <h2>テストの設定を行ってください</h2>
+                </div>
+                
+                <div class="settings-grid">
+                    <div class="setting-group">
+                        <label for="difficultyRange">難易度レベル</label>
+                        <div class="difficulty-slider">
+                            <input type="range" id="difficultyRange" min="1" max="5" value="3">
+                            <div class="difficulty-labels">
+                                <span>易しい</span>
+                                <span>標準</span>
+                                <span>難しい</span>
+                            </div>
+                            <div class="difficulty-value">レベル: <span id="difficultyValue">3</span></div>
+                        </div>
+                        <div class="difficulty-description" id="difficultyDescription">
+                            標準的な問題レベルです
+                        </div>
+                    </div>
+
+                    <div class="setting-group">
+                        <label for="timeRange">制限時間</label>
+                        <div class="time-slider">
+                            <input type="range" id="timeRange" min="20" max="90" value="50" step="10">
+                            <div class="time-labels">
+                                <span>20分</span>
+                                <span>50分</span>
+                                <span>90分</span>
+                            </div>
+                            <div class="time-value">時間: <span id="timeValue">50</span>分</div>
+                        </div>
+                        <div class="time-description">
+                            標準的なテスト時間です（50分間）
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step-actions">
+                    <button id="backToField" class="btn btn-secondary">戻る</button>
+                    <button id="generateTest" class="btn btn-primary">テスト生成</button>
+                </div>
+            </section>
+
+            <!-- ステップ4: テスト生成結果 -->
+            <section class="step-section" id="testResult" style="display: none;">
+                <div class="step-header">
+                    <span class="step-number">4</span>
+                    <h2>テストが生成されました</h2>
+                </div>
+
+                <div class="test-summary" id="testSummary">
+                    <!-- 動的に生成される -->
+                </div>
+
+                <div class="test-preview" id="testPreview">
+                    <!-- 動的に生成される -->
+                </div>
+
+                <div class="step-actions">
+                    <button id="backToSettings" class="btn btn-secondary">設定を変更</button>
+                    <button id="downloadTest" class="btn btn-primary">📄 問題をダウンロード</button>
+                    <button id="downloadAnswer" class="btn btn-success">📋 解答をダウンロード</button>
+                    <button id="createNewTest" class="btn btn-outline">新しいテストを作成</button>
+                </div>
+            </section>
+        </div>
+
+        <!-- ローディング画面 -->
+        <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+                <p>テストを生成中...</p>
+            </div>
+        </div>
+
+        <!-- プログレスバー -->
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 25%;"></div>
+            </div>
+            <div class="progress-steps">
+                <div class="progress-step active" data-step="1">学年選択</div>
+                <div class="progress-step" data-step="2">分野選択</div>
+                <div class="progress-step" data-step="3">設定</div>
+                <div class="progress-step" data-step="4">完成</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

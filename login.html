@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ログイン - 数学テスト作成システム</title>
+    <link rel="stylesheet" href="login.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-box">
+            <div class="logo">
+                <h1>📚</h1>
+                <h2>中学生数学テスト作成システム</h2>
+            </div>
+            
+            <form class="login-form" id="loginForm">
+                <div class="input-group">
+                    <label for="password">パスワード</label>
+                    <input type="password" id="password" name="password" required placeholder="パスワードを入力してください">
+                </div>
+                
+                <button type="submit" class="login-btn">ログイン</button>
+                
+                <div class="error-message" id="errorMessage" style="display: none;">
+                    パスワードが正しくありません
+                </div>
+            </form>
+            
+            <div class="footer">
+                <p>日本の学習指導要領に基づく中学生向け数学テスト作成アプリ</p>
+                <div class="features">
+                    <div class="feature">
+                        <span class="icon">📊</span>
+                        <span>学年別カリキュラム対応</span>
+                    </div>
+                    <div class="feature">
+                        <span class="icon">⚡</span>
+                        <span>難易度調整機能</span>
+                    </div>
+                    <div class="feature">
+                        <span class="icon">📄</span>
+                        <span>PDF出力対応</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="login.js"></script>
+</body>
+</html>
