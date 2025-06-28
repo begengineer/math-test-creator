@@ -52,29 +52,73 @@ class ProblemGenerator {
     // 分野別問題生成
     generateFieldProblems(grade, fieldName, fieldData, difficulty, targetTime) {
         const problems = [];
+        const usedProblems = new Set(); // 重複防止
+        
+        // 利用可能な問題数を確認
+        const availableProblems = this.getAvailableProblemCount(grade, fieldName);
+        console.log(`Available problems for ${fieldName}: ${availableProblems}`);
+        
         // 時間に応じた問題数を計算 (1問約1.5分として)
         const estimatedTimePerProblem = 1.5;
         const maxProblemsForTime = Math.floor(targetTime / estimatedTimePerProblem);
         const targetProblemsPerField = Math.floor(maxProblemsForTime / 2); // 2分野想定
         
-        // 各分野から時間に応じた問題数を生成（最低5問、最大20問）
-        const problemsToGenerate = Math.max(5, Math.min(20, targetProblemsPerField));
+        // 利用可能な問題数に基づいて上限を設定
+        const maxPossibleProblems = Math.min(availableProblems, 10); // 最大10問
+        const problemsToGenerate = Math.min(
+            Math.max(5, Math.min(20, targetProblemsPerField)),
+            maxPossibleProblems
+        );
 
-        // 難易度に関係なく基本問題から始める
-        for (let i = 0; i < problemsToGenerate; i++) {
+        console.log(`Generating ${problemsToGenerate} problems for ${fieldName} (max available: ${maxPossibleProblems})`);
+
+        // 重複を避けながら問題生成
+        let attempts = 0;
+        const maxAttempts = problemsToGenerate * 3; // 最大試行回数
+        
+        while (problems.length < problemsToGenerate && attempts < maxAttempts) {
+            attempts++;
+            
             // 最初は難易度1から、後半で指定難易度を使用
-            const currentDifficulty = i < Math.floor(problemsToGenerate / 2) ? 1 : difficulty;
+            const currentDifficulty = problems.length < Math.floor(problemsToGenerate / 2) ? 1 : difficulty;
             const problem = this.generateProblem(grade, fieldName, fieldData, currentDifficulty);
+            
             if (problem) {
-                problem.difficulty = currentDifficulty;
-                problem.estimatedTime = estimatedTimePerProblem;
-                problem.field = fieldName;
-                problems.push(problem);
+                // 重複チェック
+                const problemKey = `${problem.question}_${problem.answer}`;
+                if (!usedProblems.has(problemKey)) {
+                    problem.difficulty = currentDifficulty;
+                    problem.estimatedTime = estimatedTimePerProblem;
+                    problem.field = fieldName;
+                    problems.push(problem);
+                    usedProblems.add(problemKey);
+                }
             }
         }
 
-        console.log(`Generated ${problems.length} problems for ${fieldName}`);
+        console.log(`Generated ${problems.length} unique problems for ${fieldName}`);
         return problems;
+    }
+    
+    // 利用可能な問題数をカウント
+    getAvailableProblemCount(grade, fieldName) {
+        const gradeKey = `grade${grade}`;
+        let count = 0;
+        
+        // 過去問の数
+        if (examProblems[gradeKey] && examProblems[gradeKey][fieldName]) {
+            count += examProblems[gradeKey][fieldName].length;
+        }
+        
+        // オリジナル問題のジェネレーター数（無限生成可能）
+        if (originalProblems[gradeKey] && originalProblems[gradeKey][fieldName]) {
+            count += originalProblems[gradeKey][fieldName].length * 5; // 1ジェネレーターあたり5バリエーション
+        }
+        
+        // 従来の問題生成（無限生成可能）
+        count += 10; // フォールバック問題
+        
+        return count;
     }
 
     // 個別問題生成（80%過去問 + 20%オリジナル）

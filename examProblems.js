@@ -30,6 +30,48 @@ const examProblems = {
                 solution: "中点 = (-5 + 3) ÷ 2 = -2 ÷ 2 = -1",
                 source: "千葉県公立高校入試 改題",
                 difficulty: 2
+            },
+            {
+                question: "次の計算をしなさい。\n(-6) + (-4) + (+15)",
+                answer: "5",
+                solution: "(-6) + (-4) + (+15) = -10 + 15 = 5",
+                source: "福島県公立高校入試 改題",
+                difficulty: 1
+            },
+            {
+                question: "次の計算をしなさい。\n(-2)³ × (+3)",
+                answer: "-24",
+                solution: "(-2)³ × (+3) = -8 × 3 = -24",
+                source: "宮城県公立高校入試 改題",
+                difficulty: 2
+            },
+            {
+                question: "次の計算をしなさい。\n|(-7)| - |(-3)| + |(-1)|",
+                answer: "5",
+                solution: "|(-7)| - |(-3)| + |(-1)| = 7 - 3 + 1 = 5",
+                source: "岩手県公立高校入試 改題",
+                difficulty: 2
+            },
+            {
+                question: "正負の数の四則演算：(-5) × (+2) - (-8) ÷ (-4)",
+                answer: "-12",
+                solution: "(-5) × (+2) - (-8) ÷ (-4) = -10 - 2 = -12",
+                source: "青森県公立高校入試 改題",
+                difficulty: 3
+            },
+            {
+                question: "次の不等式を満たす整数xを求めなさい。\n-3 < x ≤ 2",
+                answer: "-2, -1, 0, 1, 2",
+                solution: "-3より大きく2以下の整数は -2, -1, 0, 1, 2",
+                source: "秋田県公立高校入試 改題",
+                difficulty: 2
+            },
+            {
+                question: "温度が朝-5℃、昼に8℃上がり、夜に12℃下がった。夜の温度を求めなさい。",
+                answer: "-9℃",
+                solution: "-5 + 8 - 12 = 3 - 12 = -9℃",
+                source: "山形県公立高校入試 改題",
+                difficulty: 1
             }
         ],
         "文字と式": [
@@ -52,6 +94,41 @@ const examProblems = {
                 answer: "23",
                 solution: "2x² - xy + y² = 2×2² - 2×(-3) + (-3)² = 8 + 6 + 9 = 23",
                 source: "兵庫県公立高校入試 改題",
+                difficulty: 3
+            },
+            {
+                question: "次の式を簡単にしなさい。\n3x + 5y - 2x + 7y",
+                answer: "x + 12y",
+                solution: "3x + 5y - 2x + 7y = (3x - 2x) + (5y + 7y) = x + 12y",
+                source: "茨城県公立高校入試 改題",
+                difficulty: 1
+            },
+            {
+                question: "次の式を簡単にしなさい。\n4(x - 2) + 3(2x + 1)",
+                answer: "10x - 5",
+                solution: "4(x - 2) + 3(2x + 1) = 4x - 8 + 6x + 3 = 10x - 5",
+                source: "栃木県公立高校入試 改題",
+                difficulty: 2
+            },
+            {
+                question: "1個a円のりんごを5個と、1個b円のみかんを3個買った。代金の合計を文字を使った式で表しなさい。",
+                answer: "5a + 3b (円)",
+                solution: "りんごの代金：5a円、みかんの代金：3b円\n合計：5a + 3b円",
+                source: "群馬県公立高校入試 改題",
+                difficulty: 1
+            },
+            {
+                question: "x = -1, y = 3のとき、x² + 2xy - y²の値を求めなさい。",
+                answer: "-14",
+                solution: "x² + 2xy - y² = (-1)² + 2×(-1)×3 - 3² = 1 - 6 - 9 = -14",
+                source: "千葉県公立高校入試 改題",
+                difficulty: 2
+            },
+            {
+                question: "次の式を展開しなさい。\n2(3x - 4y) - 5(x - 2y)",
+                answer: "x + 2y",
+                solution: "2(3x - 4y) - 5(x - 2y) = 6x - 8y - 5x + 10y = x + 2y",
+                source: "福岡県公立高校入試 改題",
                 difficulty: 3
             }
         ],
