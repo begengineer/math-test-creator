@@ -93,14 +93,7 @@ class MathTestCreator {
             this.updateTime(e.target.value);
         });
 
-        // PDFダウンロード
-        document.getElementById('downloadTest').addEventListener('click', () => {
-            this.downloadTestPDF();
-        });
-
-        document.getElementById('downloadAnswer').addEventListener('click', () => {
-            this.downloadAnswerPDF();
-        });
+        // PDF機能は削除されました
     }
 
     async logout() {
@@ -323,7 +316,7 @@ class MathTestCreator {
         });
     }
 
-    async downloadTestPDF() {
+    // PDF機能は削除されました - downloadTestPDF() {
         if (!this.generatedTest) return;
 
         try {
@@ -414,7 +407,7 @@ class MathTestCreator {
         }
     }
 
-    async downloadAnswerPDF() {
+    // PDF機能は削除されました - downloadAnswerPDF() {
         if (!this.generatedTest) return;
 
         try {

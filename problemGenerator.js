@@ -43,7 +43,7 @@ class ProblemGenerator {
             selectedFields,
             difficulty,
             targetTime: targetTimeMinutes,
-            actualTime: adjustedProblems.reduce((sum, p) => sum + p.estimatedTime, 0),
+            actualTime: targetTimeMinutes, // 設定時間に合わせて表示
             problems: adjustedProblems,
             totalProblems: adjustedProblems.length
         };
@@ -52,14 +52,13 @@ class ProblemGenerator {
     // 分野別問題生成
     generateFieldProblems(grade, fieldName, fieldData, difficulty, targetTime) {
         const problems = [];
-        const timePerProblem = fieldData.difficulty[difficulty].timePerProblem || 2;
+        // 時間に応じた問題数を計算 (1問約1.5分として)
+        const estimatedTimePerProblem = 1.5;
+        const maxProblemsForTime = Math.floor(targetTime / estimatedTimePerProblem);
+        const targetProblemsPerField = Math.floor(maxProblemsForTime / 2); // 2分野想定
         
-        // 50分テストで最低30問を保証
-        const minProblemsFor50Min = 30;
-        const targetProblems = Math.max(minProblemsFor50Min, Math.floor(targetTime * 0.6));
-        
-        // 各分野から固定で15問ずつ生成
-        const problemsToGenerate = 15;
+        // 各分野から時間に応じた問題数を生成（最低5問、最大20問）
+        const problemsToGenerate = Math.max(5, Math.min(20, targetProblemsPerField));
 
         // 難易度に関係なく基本問題から始める
         for (let i = 0; i < problemsToGenerate; i++) {
@@ -68,7 +67,7 @@ class ProblemGenerator {
             const problem = this.generateProblem(grade, fieldName, fieldData, currentDifficulty);
             if (problem) {
                 problem.difficulty = currentDifficulty;
-                problem.estimatedTime = timePerProblem;
+                problem.estimatedTime = estimatedTimePerProblem;
                 problem.field = fieldName;
                 problems.push(problem);
             }
@@ -99,7 +98,7 @@ class ProblemGenerator {
         if (problem) {
             problem.field = fieldName;
             problem.difficulty = difficulty;
-            problem.estimatedTime = fieldData.difficulty[difficulty].timePerProblem;
+            // estimatedTimeは呼び出し元で設定
         }
 
         return problem;
