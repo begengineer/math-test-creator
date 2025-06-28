@@ -34,8 +34,8 @@ class ProblemGenerator {
             });
         }
 
-        // 時間調整
-        const adjustedProblems = this.adjustTestTime(problems, targetTimeMinutes);
+        // 時間調整を無効化して全問題を出題
+        const adjustedProblems = problems; // this.adjustTestTime(problems, targetTimeMinutes);
 
         return {
             grade: grade,

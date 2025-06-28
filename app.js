@@ -381,7 +381,7 @@ class MathTestCreator {
                 
                 doc.setFontSize(12);
                 doc.setFont('helvetica', 'bold');
-                const header = `Problem ${index + 1} [${problem.field}]${problem.source ? ' - ' + problem.source : ''}`;
+                const header = `問${index + 1} [${problem.field}]${problem.source ? ' - ' + problem.source : ''}`;
                 doc.text(header, margin, yPosition);
                 yPosition += 15;
                 
@@ -393,7 +393,7 @@ class MathTestCreator {
                 
                 // 解答欄
                 doc.setFont('helvetica', 'bold');
-                doc.text('Answer:', margin, yPosition);
+                doc.text('【解答】', margin, yPosition);
                 yPosition += 10;
                 
                 for (let i = 0; i < 3; i++) {
@@ -431,7 +431,7 @@ class MathTestCreator {
             // タイトル
             doc.setFontSize(18);
             doc.setFont('helvetica', 'bold');
-            doc.text('Math Test - Answers & Solutions', pageWidth / 2, yPosition, { align: 'center' });
+            doc.text('数学テスト - 解答と解説', pageWidth / 2, yPosition, { align: 'center' });
             yPosition += 30;
             
             // 問題と解答
@@ -443,7 +443,7 @@ class MathTestCreator {
                 
                 doc.setFontSize(12);
                 doc.setFont('helvetica', 'bold');
-                const header = `Problem ${index + 1} [${problem.field}]${problem.source ? ' - ' + problem.source : ''}`;
+                const header = `問${index + 1} [${problem.field}]${problem.source ? ' - ' + problem.source : ''}`;
                 doc.text(header, margin, yPosition);
                 yPosition += 15;
                 
@@ -455,7 +455,7 @@ class MathTestCreator {
                 
                 // 解答
                 doc.setFont('helvetica', 'bold');
-                doc.text('Answer:', margin, yPosition);
+                doc.text('【解答】', margin, yPosition);
                 doc.setFont('helvetica', 'normal');
                 yPosition += 10;
                 doc.text(String(problem.answer), margin + 10, yPosition);
@@ -464,7 +464,7 @@ class MathTestCreator {
                 // 解説
                 if (problem.solution) {
                     doc.setFont('helvetica', 'bold');
-                    doc.text('Solution:', margin, yPosition);
+                    doc.text('【解説】', margin, yPosition);
                     doc.setFont('helvetica', 'normal');
                     yPosition += 10;
                     const solutionLines = doc.splitTextToSize(problem.solution, pageWidth - 2 * margin);
