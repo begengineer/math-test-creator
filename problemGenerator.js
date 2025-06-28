@@ -1,16 +1,14 @@
 // 数学問題生成エンジン
 const mathCurriculum = require('./curriculum');
 const { examProblems, originalProblems } = require('./examProblems');
-const AIProblemGenerator = require('./aiProblemGenerator');
 
 class ProblemGenerator {
     constructor() {
         this.curriculum = mathCurriculum;
-        this.aiGenerator = new AIProblemGenerator();
     }
 
-    // テスト生成（非同期）
-    async generateTest(grade, selectedFields, difficulty, targetTime = 50) {
+    // テスト生成
+    generateTest(grade, selectedFields, difficulty, targetTime = 50) {
         const gradeData = this.curriculum[`grade${grade}`];
         if (!gradeData) {
             throw new Error(`Invalid grade: ${grade}`);
@@ -18,21 +16,26 @@ class ProblemGenerator {
 
         const problems = [];
         const targetTimeMinutes = targetTime;
+        let currentTime = 0;
 
-        // 各分野から問題を生成（並列処理）
-        const fieldPromises = selectedFields.map(async (fieldName) => {
+        // 各分野から問題を生成
+        for (const fieldName of selectedFields) {
             const field = gradeData.fields[fieldName];
-            if (!field) return [];
+            if (!field) continue;
 
-            return await this.generateFieldProblems(
+            const fieldProblems = this.generateFieldProblems(
                 grade, fieldName, field, difficulty, targetTimeMinutes
             );
-        });
-
-        const fieldResults = await Promise.all(fieldPromises);
-        fieldResults.forEach(fieldProblems => {
             problems.push(...fieldProblems);
-        });
+            
+            // 時間計算
+            fieldProblems.forEach(problem => {
+                currentTime += problem.estimatedTime;
+            });
+        }
+
+        // 時間調整を無効化して全問題を出題
+        const adjustedProblems = problems;
 
         return {
             grade: grade,
@@ -40,78 +43,60 @@ class ProblemGenerator {
             selectedFields,
             difficulty,
             targetTime: targetTimeMinutes,
-            actualTime: targetTimeMinutes,
-            problems: problems,
-            totalProblems: problems.length
+            actualTime: targetTimeMinutes, // 設定時間に合わせて表示
+            problems: adjustedProblems,
+            totalProblems: adjustedProblems.length
         };
     }
 
-    // 分野別問題生成（AI使用）
-    async generateFieldProblems(grade, fieldName, fieldData, difficulty, targetTime) {
-        console.log(`Generating AI problems for ${fieldName}...`);
+    // 分野別問題生成
+    generateFieldProblems(grade, fieldName, fieldData, difficulty, targetTime) {
+        const problems = [];
+        const usedProblems = new Set(); // 重複防止
         
-        // 時間に応じた問題数を計算
-        const estimatedTimePerProblem = difficulty <= 2 ? 1.5 : 2.0;
+        // 利用可能な問題数を確認
+        const availableProblems = this.getAvailableProblemCount(grade, fieldName);
+        console.log(`Available problems for ${fieldName}: ${availableProblems}`);
+        
+        // 時間に応じた問題数を計算 (1問約1.5分として)
+        const estimatedTimePerProblem = 1.5;
         const maxProblemsForTime = Math.floor(targetTime / estimatedTimePerProblem);
         const targetProblemsPerField = Math.floor(maxProblemsForTime / 2); // 2分野想定
         
-        // 問題数を決定（5-15問の範囲）
+        // 利用可能な問題数に基づいて上限を設定
+        const maxPossibleProblems = Math.min(availableProblems, 10); // 最大10問
         const problemsToGenerate = Math.min(
-            Math.max(5, targetProblemsPerField), 
-            15
+            Math.max(5, Math.min(20, targetProblemsPerField)),
+            maxPossibleProblems
         );
 
-        console.log(`Generating ${problemsToGenerate} AI problems for ${fieldName}`);
+        console.log(`Generating ${problemsToGenerate} problems for ${fieldName} (max available: ${maxPossibleProblems})`);
 
-        try {
-            // AI生成で複数問題を並列生成
-            const problems = await this.aiGenerator.generateMultipleProblems(
-                grade, fieldName, difficulty, problemsToGenerate
-            );
-
-            // 基本的な問題も混ぜる（50%をAI、50%を従来方式）
-            const aiCount = Math.ceil(problemsToGenerate * 0.8); // 80%をAI生成
-            const traditionalCount = problemsToGenerate - aiCount;
-
-            const aiProblems = problems.slice(0, aiCount);
-            const traditionalProblems = [];
-
-            // 従来方式の問題も少し生成
-            for (let i = 0; i < traditionalCount; i++) {
-                const traditionalProblem = this.generateTraditionalProblem(grade, fieldName, difficulty);
-                if (traditionalProblem) {
-                    traditionalProblem.estimatedTime = estimatedTimePerProblem;
-                    traditionalProblem.field = fieldName;
-                    traditionalProblems.push(traditionalProblem);
+        // 重複を避けながら問題生成
+        let attempts = 0;
+        const maxAttempts = problemsToGenerate * 3; // 最大試行回数
+        
+        while (problems.length < problemsToGenerate && attempts < maxAttempts) {
+            attempts++;
+            
+            // 最初は難易度1から、後半で指定難易度を使用
+            const currentDifficulty = problems.length < Math.floor(problemsToGenerate / 2) ? 1 : difficulty;
+            const problem = this.generateProblem(grade, fieldName, fieldData, currentDifficulty);
+            
+            if (problem) {
+                // 重複チェック
+                const problemKey = `${problem.question}_${problem.answer}`;
+                if (!usedProblems.has(problemKey)) {
+                    problem.difficulty = currentDifficulty;
+                    problem.estimatedTime = estimatedTimePerProblem;
+                    problem.field = fieldName;
+                    problems.push(problem);
+                    usedProblems.add(problemKey);
                 }
             }
-
-            const allProblems = [...aiProblems, ...traditionalProblems];
-            console.log(`Generated ${allProblems.length} problems for ${fieldName} (${aiProblems.length} AI + ${traditionalProblems.length} traditional)`);
-            
-            return allProblems;
-        } catch (error) {
-            console.error(`AI問題生成エラー for ${fieldName}:`, error);
-            
-            // フォールバック：従来方式で生成
-            return this.generateFallbackProblems(grade, fieldName, difficulty, problemsToGenerate, estimatedTimePerProblem);
         }
-    }
 
-    // フォールバック問題生成
-    generateFallbackProblems(grade, fieldName, difficulty, count, estimatedTime) {
-        console.log(`Fallback: generating ${count} traditional problems for ${fieldName}`);
-        const problems = [];
-        
-        for (let i = 0; i < count; i++) {
-            const problem = this.generateTraditionalProblem(grade, fieldName, difficulty);
-            if (problem) {
-                problem.estimatedTime = estimatedTime;
-                problem.field = fieldName;
-                problems.push(problem);
-            }
-        }
-        
+        console.log(`Generated ${problems.length} unique problems for ${fieldName}`);
         return problems;
     }
     

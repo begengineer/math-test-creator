@@ -164,9 +164,9 @@ app.post('/api/generate-test', authManager.requireAuth(), async (req, res) => {
             });
         }
         
-        // テスト生成（AI使用）
-        console.log('Generating AI test:', { grade, fields, difficulty, timeLimit });
-        const testData = await problemGenerator.generateTest(grade, fields, difficulty, timeLimit);
+        // テスト生成
+        console.log('Generating test:', { grade, fields, difficulty, timeLimit });
+        const testData = problemGenerator.generateTest(grade, fields, difficulty, timeLimit);
         
         res.json(testData);
         
