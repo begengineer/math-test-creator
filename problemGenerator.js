@@ -1,4 +1,5 @@
 // 数学問題生成エンジン
+const mathCurriculum = require('./curriculum');
 const { examProblems, originalProblems } = require('./examProblems');
 
 class ProblemGenerator {
