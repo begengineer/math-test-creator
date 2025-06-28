@@ -52,12 +52,14 @@ class ProblemGenerator {
     // 分野別問題生成
     generateFieldProblems(grade, fieldName, fieldData, difficulty, targetTime) {
         const problems = [];
-        const timePerProblem = fieldData.difficulty[difficulty].timePerProblem;
-        const maxProblems = Math.floor(targetTime / timePerProblem);
-        // 50分テストで30問程度になるよう調整
-        const totalFields = Object.keys(fieldData).length || 1;
-        const problemsPerField = Math.max(Math.floor(30 / totalFields), 5);
-        const problemsToGenerate = Math.min(maxProblems, problemsPerField);
+        const timePerProblem = fieldData.difficulty[difficulty].timePerProblem || 2;
+        
+        // 50分テストで最低30問を保証
+        const minProblemsFor50Min = 30;
+        const targetProblems = Math.max(minProblemsFor50Min, Math.floor(targetTime * 0.6));
+        
+        // 各分野から固定で15問ずつ生成
+        const problemsToGenerate = 15;
 
         // 難易度に関係なく基本問題から始める
         for (let i = 0; i < problemsToGenerate; i++) {
@@ -72,6 +74,7 @@ class ProblemGenerator {
             }
         }
 
+        console.log(`Generated ${problems.length} problems for ${fieldName}`);
         return problems;
     }
 
@@ -97,6 +100,7 @@ class ProblemGenerator {
             problem.field = fieldName;
             problem.difficulty = difficulty;
             problem.estimatedTime = fieldData.difficulty[difficulty].timePerProblem;
+        }
 
         return problem;
     }

@@ -331,7 +331,10 @@ class MathTestCreator {
             
             // クライアントサイドでPDF生成
             const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
+            const doc = new jsPDF({
+                unit: 'mm',
+                format: 'a4'
+            });
             
             let yPosition = 30;
             const pageWidth = doc.internal.pageSize.width;
@@ -341,7 +344,7 @@ class MathTestCreator {
             // タイトル
             doc.setFontSize(18);
             doc.setFont('helvetica', 'bold');
-            doc.text('Math Test / Suugaku Test', pageWidth / 2, yPosition, { align: 'center' });
+            doc.text('数学テスト', pageWidth / 2, yPosition, { align: 'center' });
             yPosition += 20;
             
             // テスト情報 (アルファベットで表示)
